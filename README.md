@@ -4,7 +4,7 @@
 
 这里的再次封装主要是为了使用方便
 
-<h2>函数列表</h2>
+<li><h2>函数列表</h2></li>
 <h4>CreateBucket</h4>
 <h5><em>说明：</em>创建Bucket <em>返回：</em>true-创建成功 false-创建失败</h5>
 <h4>CannedAccessControlList GetBucketAcl 获取Bucket访问权限 返回:CannedAccessControlList枚举类型
