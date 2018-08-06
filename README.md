@@ -10,6 +10,6 @@
 <li>CannedAccessControlList GetBucketAcl</li>
 <h5>获取Bucket访问权限 返回:CannedAccessControlList枚举类型</h5>
 <li>IEnumerable<Bucket> ListBuckets</li>
-<h5>列出用户所有Bucket 返回:IEnumerable<Bucket></h5>
+<h5>列出用户所有Bucket 返回:IEnumerable\<Bucket\></h5>
 <li>bool IsBucketExist</li>
-判断Bucket是否存在
+<h5>判断Bucket是否存在</h5>
