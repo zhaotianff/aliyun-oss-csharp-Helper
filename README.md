@@ -1,6 +1,10 @@
 # Aliyun-Oss-CSharp-Helper
-A encapsulation of aliyun oss sdk
 
-<h2>Method List
-<h4>1、CreateBucket(Create a bucket)
-<h4>2、GetBucketAcl(Get bucket acl)
+阿里云 OSS .Net SDK 再次封装
+
+这里的再次封装主要是为了使用方便
+
+<h2>函数列表
+<h4>1、CreateBucket
+<h5>创建Bucket
+<h4>2、GetBucketAcl(获取Bucket访问权限，返回的是)
