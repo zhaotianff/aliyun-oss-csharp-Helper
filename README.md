@@ -23,13 +23,13 @@
 <h5>删除Bucket 返回：true-删除成功 false-删除失败</h5>
 <li>bool DeleteBucket(string bucketName)</li>
 <h5>删除指定Bucket</h5>
-
+<br/><br/>
 <h2>使用示例</h2>
-<code><pre> 
-        private static void streamProgressCallback(object sender, StreamTransferProgressArgs args)
+
+        <code><pre> private static void streamProgressCallback(object sender, StreamTransferProgressArgs args)
         {
             System.Console.WriteLine("ProgressCallback - TotalBytes:{0}, TransferredBytes:{1}",
                 args.TotalBytes, args.TransferredBytes);
-        }
-</code></pre>
+        }</code></pre>
+
 
