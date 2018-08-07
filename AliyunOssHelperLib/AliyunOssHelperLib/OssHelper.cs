@@ -173,16 +173,19 @@ namespace ZtiLib
         /// <returns></returns>
         public CannedAccessControlList GetBucketAcl()
         {
-            AccessControlList acl = new AccessControlList();
+            AccessControlList acl = null;
+            CannedAccessControlList accessType = CannedAccessControlList.Default;
+
             try
             {
                 acl = client.GetBucketAcl(bucketName);
+                accessType = acl.ACL;
             }
             catch (OssException ex)
             {
                 lastError = ex;
             }
-            return acl.ACL;
+            return accessType;
         }
 
         /// <summary>
@@ -315,9 +318,9 @@ namespace ZtiLib
         ///<param name="str">string object</param>
         ///<param name="name">designate object name</param>
         /// <returns></returns>
-        public bool PutString(string _bucketName,string str,string name)
+        public bool PutString(string bucketName,string str,string name)
         {
-            this.bucketName = _bucketName;
+            this.bucketName = bucketName;
             return PutString(str,name);
         }
 
@@ -375,6 +378,42 @@ namespace ZtiLib
         }
 
         /// <summary>
+        /// Upload file object to bucket with progress
+        /// </summary>
+        /// <param name="filePath">File to upload</param>
+        /// <param name="objcetKey">Object key in oss</param>
+        /// <param name="progressCallback">Progress event handler</param>
+        public void PutFileProgress(string filePath,string objectKey,EventHandler<StreamTransferProgressArgs> progressCallback)
+        {
+            try
+            {
+                using (var fs = File.Open(filePath, FileMode.Open))
+                {
+                    var putObjectRequest = new PutObjectRequest(bucketName, objectKey, fs);
+                    putObjectRequest.StreamTransferProgress += progressCallback;
+                    client.PutObject(putObjectRequest);
+                }                
+            }
+            catch (OssException ex)
+            {
+                lastError = ex;
+            }
+        }
+
+        /// <summary>
+        /// Upload file object to bucket with progress
+        /// </summary>
+        /// <param name="bucketName">Bucket name</param>
+        /// <param name="filePath">File to upload</param>
+        /// <param name="objcetKey">Object key in oss</param>
+        /// <param name="progressCallback">Progress event handler</param>
+        public void PutFileProgress(string bucketName, string filePath, string objcetKey, EventHandler<StreamTransferProgressArgs> progressCallback)
+        {
+            this.bucketName = bucketName;
+            PutFileProgress(filePath, objcetKey, progressCallback);
+        }
+
+        /// <summary>
         /// Put File With Md5 Check
         /// </summary>
         /// <param name="filePath">File to upload</param>
@@ -424,7 +463,7 @@ namespace ZtiLib
         /// Pub File Async
         /// </summary>
         /// <param name="bucketName">Bucket Name</param>
-        public void PutFileAsync(string bucketName,string filePath,string objcetKey)
+        public void PutFileAsync(string bucketName,string filePath,string objcetKey,Action act)
         {
             try
             {
@@ -436,6 +475,9 @@ namespace ZtiLib
                     ObjectMetadata metadata = new ObjectMetadata();
                     client.BeginPutObject(bucketName, objcetKey, fs, metadata, PutFileCallback, result.ToCharArray());
                     resetEvent.WaitOne();
+                    
+                    if (act != null)
+                        act();
                 }
             }
             catch (OssException ex)
@@ -498,6 +540,32 @@ namespace ZtiLib
         {
             this.bucketName = bucketName;
             return DeleteObject(name);
+        }
+
+        /// <summary>
+        /// List objcets
+        /// </summary>
+        /// <returns>OssObjectSummary Collection</returns>
+        public IEnumerable<OssObjectSummary> ListObjects()
+        {
+            IEnumerable<OssObjectSummary> summaryList = new List<OssObjectSummary>();
+            try
+            {             
+                var listObjectsRequest = new ListObjectsRequest(bucketName);
+                var result = client.ListObjects(listObjectsRequest);
+                summaryList = result.ObjectSummaries;
+            }
+            catch (OssException ex)
+            {
+                lastError = ex;
+            }
+            return summaryList;
+        }
+
+        public IEnumerable<OssObjectSummary> ListObjects(string bucketName)
+        {
+            this.bucketName = bucketName;
+            return ListObjects();
         }
         #endregion
     }
