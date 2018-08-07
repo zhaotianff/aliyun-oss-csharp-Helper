@@ -25,7 +25,7 @@
 <h5>删除指定Bucket</h5>
 <br/><br/>
 <h2>使用示例</h2>
-```C#
+```cpp
         private static void streamProgressCallback(object sender, StreamTransferProgressArgs args)
         {
             System.Console.WriteLine("ProgressCallback - TotalBytes:{0}, TransferredBytes:{1}",
