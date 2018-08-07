@@ -24,7 +24,7 @@
 <li>bool DeleteBucket(string bucketName)</li>
 <h5>删除指定Bucket</h5>
 <br/><br/>
-<em>使用示例</em>
+<h2>使用示例</h2>
 <h5>上传进度事件处理函数</h5>
 <pre><code>
         private static void streamProgressCallback(object sender, StreamTransferProgressArgs args)
