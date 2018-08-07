@@ -23,7 +23,7 @@
 <h5>删除Bucket 返回：true-删除成功 false-删除失败</h5>
 <li>bool DeleteBucket(string bucketName)</li>
 <h5>删除指定Bucket</h5>
-========================================================================================================
+==============================================================
 <li>bool PutString(string str,string name)</li>
 <h5>上传字符串 返回：true-上传成功 false-上传失败 参数：str-字符串 name-在OSS存储使用的名字(必须唯一，否则会替换)</h5>
 <li>bool PutString(string bucketName,string str,string name)</li>
