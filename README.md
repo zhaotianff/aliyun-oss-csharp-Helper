@@ -26,7 +26,7 @@
 <br/><br/>
 <em>使用示例</em>
 <h5>上传进度事件处理函数</h5>
-<code><pre> 
+<pre> <code>
         private static void streamProgressCallback(object sender, StreamTransferProgressArgs args)
         {
             System.Console.WriteLine("ProgressCallback - TotalBytes:{0}, TransferredBytes:{1}",
