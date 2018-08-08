@@ -473,7 +473,7 @@ namespace ZtiLib
                 {
                     string result = "Notice user: put object finish";
                     ObjectMetadata metadata = new ObjectMetadata();
-                    client.BeginPutObject(bucketName, objcetKey, fs, metadata, PutFileCallback, result.ToCharArray());
+                    client.BeginPutObject(bucketName, objcetKey, fs, metadata, PutFileAsyncCallback, result.ToCharArray());
                     resetEvent.WaitOne();
                     
                     if (act != null)
@@ -490,7 +490,7 @@ namespace ZtiLib
         /// Put File Async Callback 
         /// </summary>
         /// <param name="ar">IAsyncResult</param>
-        private void PutFileCallback(IAsyncResult ar)
+        private void PutFileAsyncCallback(IAsyncResult ar)
         {
             try
             {
@@ -505,6 +505,61 @@ namespace ZtiLib
                 resetEvent.Set();
             }
         }
+
+        /// <summary>
+        /// Put File With Call Back
+        /// </summary>      
+        /// <param name="filePath">File to upload</param>
+        /// <param name="objectKey">Object key in oss</param>
+        /// <returns></returns>
+        public void PutObjectCallback(string filePath, string objectKey,string callbackUrl,string callbackBody)
+        {         
+            try
+            {
+                var metadata = BuildCallbackMetadata(callbackUrl, callbackBody);
+                using (var fs = File.Open(filePath, FileMode.Open))
+                {
+                    var putObjectRequest = new PutObjectRequest(bucketName, objectKey, fs, metadata);
+                    var result = client.PutObject(putObjectRequest);                   
+                }               
+            }
+            catch (OssException ex)
+            {
+                lastError = ex;
+            }
+
+        }
+
+        /// <summary>
+        /// Build Callback Metadata
+        /// </summary>
+        /// <param name="callbackUrl"></param>
+        /// <param name="callbackBody"></param>
+        /// <returns></returns>
+        private static ObjectMetadata BuildCallbackMetadata(string callbackUrl, string callbackBody)
+        {
+            string callbackHeaderBuilder = new CallbackHeaderBuilder(callbackUrl, callbackBody).Build();
+            string CallbackVariableHeaderBuilder = new CallbackVariableHeaderBuilder().
+                AddCallbackVariable("x:var1", "x:value1").AddCallbackVariable("x:var2", "x:value2").Build();
+
+            var metadata = new ObjectMetadata();
+            metadata.AddHeader(HttpHeaders.Callback, callbackHeaderBuilder);
+            metadata.AddHeader(HttpHeaders.CallbackVar, CallbackVariableHeaderBuilder);
+            return metadata;
+        }
+
+
+        //TODO
+        //AppendObject
+
+        /// <summary>
+        /// Put File Multi Part
+        /// </summary>
+        public void PutFileMultipart()
+        {
+
+        }
+
         #endregion
 
         #region Download
