@@ -555,11 +555,85 @@ namespace ZtiLib
         /// <summary>
         /// Put File Multi Part
         /// </summary>
-        public void PutFileMultipart()
+        public void PutFileMultipart(string filePath, string objectKey, int partSize)
         {
+            try
+            {
+                var initMultiPartResult = InitiateMultipartUpload(filePath, objectKey);
+                var requestId = initMultiPartResult.RequestId;
 
+                if (initMultiPartResult.HttpStatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    List<PartETag> list = UploadParts(filePath, objectKey, partSize, requestId);
+                    var result = CompleteUploadPart(objectKey, requestId, list);
+                }
+            }
+            catch (OssException ex)
+            {
+                lastError = ex;
+            }
         }
 
+
+        public InitiateMultipartUploadResult InitiateMultipartUpload(string filePath,string objectKey)
+        {
+            var request = new InitiateMultipartUploadRequest(bucketName, objectKey);
+            var result = client.InitiateMultipartUpload(request);
+            return result;
+        }
+
+        public List<PartETag> UploadParts(string filePath,string objectKey,int partSize,string uploadId)
+        {
+            var fi = new FileInfo(filePath);
+            var fileSize = fi.Length;
+            var partCount = fileSize / partSize;
+            if (fileSize % partSize != 0)
+            {
+                partCount++;
+            }
+
+            var partETags = new List<PartETag>();
+            using (var fs = File.Open(filePath, FileMode.Open))
+            {
+                for (var i = 0; i < partCount; i++)
+                {
+                    var skipBytes = (long)partSize * i;
+                    fs.Seek(skipBytes, 0);
+                    var size = (partSize < fileSize - skipBytes) ? partSize : (fileSize - skipBytes);
+                    var request = new UploadPartRequest(bucketName, objectKey, uploadId)
+                    {
+                        InputStream = fs,
+                        PartSize = size,
+                        PartNumber = i + 1
+                    };
+
+                    var result = client.UploadPart(request);
+
+                    partETags.Add(result.PartETag);                
+                }
+            }
+            return partETags;
+        }
+
+        public CompleteMultipartUploadResult CompleteUploadPart(string objectKey, string uploadId, List<PartETag> partETags)
+        {
+            CompleteMultipartUploadResult uploadResult = new CompleteMultipartUploadResult();
+            try
+            {
+                var completeMultipartUploadRequest = new CompleteMultipartUploadRequest(bucketName, objectKey, uploadId);
+                foreach (var partETag in partETags)
+                {
+                    completeMultipartUploadRequest.PartETags.Add(partETag);
+                }
+                uploadResult = client.CompleteMultipartUpload(completeMultipartUploadRequest);               
+            }
+            catch (OssException ex)
+            {
+                lastError = ex;
+            }
+
+            return uploadResult;
+        }
         #endregion
 
         #region Download
