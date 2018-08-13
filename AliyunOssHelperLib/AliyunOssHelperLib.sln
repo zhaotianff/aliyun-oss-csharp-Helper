@@ -5,6 +5,8 @@ VisualStudioVersion = 12.0.40629.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AliyunOssHelperLib", "AliyunOssHelperLib\AliyunOssHelperLib.csproj", "{168931BA-558B-41E3-9030-70E9AB44D21B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OssDemo", "OssDemo\OssDemo.csproj", "{9E6E68D3-EE34-451E-A0AB-A70CB01A38F2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{168931BA-558B-41E3-9030-70E9AB44D21B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{168931BA-558B-41E3-9030-70E9AB44D21B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{168931BA-558B-41E3-9030-70E9AB44D21B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9E6E68D3-EE34-451E-A0AB-A70CB01A38F2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9E6E68D3-EE34-451E-A0AB-A70CB01A38F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9E6E68D3-EE34-451E-A0AB-A70CB01A38F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9E6E68D3-EE34-451E-A0AB-A70CB01A38F2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

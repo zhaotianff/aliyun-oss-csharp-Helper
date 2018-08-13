@@ -617,7 +617,7 @@ namespace ZtiLib
 
         public CompleteMultipartUploadResult CompleteUploadPart(string objectKey, string uploadId, List<PartETag> partETags)
         {
-            CompleteMultipartUploadResult uploadResult = new CompleteMultipartUploadResult();
+            CompleteMultipartUploadResult uploadResult = null;
             try
             {
                 var completeMultipartUploadRequest = new CompleteMultipartUploadRequest(bucketName, objectKey, uploadId);
