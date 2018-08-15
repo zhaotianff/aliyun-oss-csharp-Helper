@@ -8,6 +8,7 @@ namespace OssDemo
 {
     class ObjectInfo
     {
+        public bool IsCheck { get; set; }
         public string FileName { get; set; }
 
         public string FilePath { get; set; }
@@ -21,5 +22,4 @@ namespace OssDemo
         /// </summary>
         public string Progress { get; set; }
     }
-
 }

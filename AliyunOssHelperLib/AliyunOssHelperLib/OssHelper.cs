@@ -512,7 +512,7 @@ namespace ZtiLib
         /// <param name="filePath">File to upload</param>
         /// <param name="objectKey">Object key in oss</param>
         /// <returns></returns>
-        public void PutObjectCallback(string filePath, string objectKey,string callbackUrl,string callbackBody)
+        private void PutObjectCallback(string filePath, string objectKey,string callbackUrl,string callbackBody)
         {         
             try
             {
@@ -575,14 +575,14 @@ namespace ZtiLib
         }
 
 
-        public InitiateMultipartUploadResult InitiateMultipartUpload(string filePath,string objectKey)
+        private InitiateMultipartUploadResult InitiateMultipartUpload(string filePath,string objectKey)
         {
             var request = new InitiateMultipartUploadRequest(bucketName, objectKey);
             var result = client.InitiateMultipartUpload(request);
             return result;
         }
 
-        public List<PartETag> UploadParts(string filePath,string objectKey,int partSize,string uploadId)
+        private List<PartETag> UploadParts(string filePath,string objectKey,int partSize,string uploadId)
         {
             var fi = new FileInfo(filePath);
             var fileSize = fi.Length;
@@ -615,7 +615,7 @@ namespace ZtiLib
             return partETags;
         }
 
-        public CompleteMultipartUploadResult CompleteUploadPart(string objectKey, string uploadId, List<PartETag> partETags)
+        private CompleteMultipartUploadResult CompleteUploadPart(string objectKey, string uploadId, List<PartETag> partETags)
         {
             CompleteMultipartUploadResult uploadResult = null;
             try

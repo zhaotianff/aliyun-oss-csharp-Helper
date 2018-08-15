@@ -25,6 +25,7 @@ namespace OssDemo
     public partial class MainWindow : Window
     {
         ObservableCollection<ObjectInfo> uploadList = new ObservableCollection<ObjectInfo>();
+        ObservableCollection<ObjectInfo> downloadList = new ObservableCollection<ObjectInfo>();
         ZtiLib.OssHelper ossHelper;
 
         int globalIndex = 0;
@@ -38,6 +39,8 @@ namespace OssDemo
         public string EndPoint { get; set; }
 
         public string BucketName { get; set; }
+
+        public string DownloadBucketName { get; set; }
 
         public MainWindow()
         {
@@ -71,6 +74,9 @@ namespace OssDemo
 
         private void btn_Upload_Click(object sender, RoutedEventArgs e)
         {
+            remain = 100 % uploadList.Count;
+            step = 100 / uploadList.Count;
+            
             System.Threading.Thread thread = new System.Threading.Thread(Upload);
             thread.IsBackground = true;
             thread.Start();
@@ -89,8 +95,7 @@ namespace OssDemo
                 Progress = "0%"
             };
 
-            uploadList.Add(objectInfo);
-            
+            uploadList.Add(objectInfo);            
         }
 
         public void Upload()
@@ -107,18 +112,45 @@ namespace OssDemo
             {
                 Dispatcher.Invoke(() => {
                     MessageBox.Show("请先配置访问密钥");
-                });
-                this.tab.SelectedIndex = 2;
+                    this.tab.SelectedIndex = 2;
+                });               
                 return;
             }
 
+            string folder = "";
+
             Dispatcher.Invoke(() => {
                 ossHelper.BucketName = this.combox_Buckets.Text;
-            }); 
+                progress_Upload.Value = 0;
+                folder =  this.tbox_Folder.Text;
+            });
 
+             
+            
             for (globalIndex = 0; globalIndex < uploadList.Count; globalIndex++)
             {
-                ossHelper.PutFile(uploadList[globalIndex].FilePath, uploadList[globalIndex].FileName);
+                if(!string.IsNullOrEmpty(folder))
+                    ossHelper.PutFile(uploadList[globalIndex].FilePath, folder + "/" + uploadList[globalIndex].FileName);
+                else
+                    ossHelper.PutFile(uploadList[globalIndex].FilePath, uploadList[globalIndex].FileName);
+
+                Dispatcher.Invoke(() => {
+                    if (remain == 0)
+                    {
+                        progress_Upload.Value += step;
+                    }
+                    else
+                    {
+                        if ( globalIndex == ( uploadList.Count - 1))
+                        {
+                            progress_Upload.Value += step + remain;
+                        }
+                        else
+                        {
+                            progress_Upload.Value += step;
+                        }
+                    }
+                });
             }
         }
 
@@ -126,7 +158,7 @@ namespace OssDemo
         {
             Key = this.tbox_Key.Text.Trim();
             Secret = this.tbox_Secret.Text.Trim();
-            EndPoint = this.combox_EndPoint.Text.Substring(3);
+            EndPoint = this.combox_EndPoint.Text.Substring(5);
 
             if(this.combox_EndPoint.SelectedIndex == -1)
             {
@@ -137,6 +169,7 @@ namespace OssDemo
             ossHelper = new ZtiLib.OssHelper(Key,Secret,EndPoint,"",false);
             IEnumerable<Bucket> bucketList = ossHelper.ListBuckets();
             this.combox_Buckets.ItemsSource = bucketList.Select(x => x.Name);
+            this.combox_DownloadBuckets.ItemsSource = bucketList.Select(x => x.Name);
             BucketName = bucketList.ElementAt(0).Name;
             ossHelper.BucketName = BucketName;
             MessageBox.Show("配置成功");
@@ -145,9 +178,82 @@ namespace OssDemo
         private List<string> EndPointList()
         {
             List<string> list = new List<string>();
-            list.Add("华东1http://oss-cn-hangzhou.aliyuncs.com");
-            list.Add("华东2http://oss-cn-shanghai-internal.aliyuncs.com");
+            list.Add("华东 1-http://oss-cn-hangzhou.aliyuncs.com");
+            list.Add("华东 2-http://oss-cn-shanghai-internal.aliyuncs.com");
             return list;
+        }
+
+        private void listview_Upload_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            int index = this.listview_Upload.SelectedIndex;
+            if(index != -1)
+            {
+                if(uploadList[index].FileType == ".jpg" || uploadList[index].FileType == ".bmp" || uploadList[index].FileType == ".png")
+                    this.image_Preview.Source = new BitmapImage(new Uri(uploadList[index].FilePath));
+            }
+        }
+
+        private void combox_DownloadBuckets_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if(this.combox_DownloadBuckets.SelectedIndex != -1)
+            {
+                DownloadBucketName = this.combox_DownloadBuckets.SelectedItem.ToString();
+                ossHelper.BucketName = DownloadBucketName;
+            }
+        }
+
+        private void btn_ListFile_Click(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrEmpty(Key) || string.IsNullOrEmpty(Secret))
+            {                
+                MessageBox.Show("请先配置访问密钥");             
+                this.tab.SelectedIndex = 2;
+                return;
+            }
+
+            if(string.IsNullOrEmpty(DownloadBucketName))
+            {
+                MessageBox.Show("请选择Bucket");
+                return;
+            }
+
+            IEnumerable<OssObjectSummary> fileList = ossHelper.ListObjects();
+
+            var result = fileList.Select(x => new ObjectInfo{
+                IsCheck = false,
+                FileName = x.Key,
+                FileSize = (x.Size / 1024).ToString() + "KB"
+            });
+            foreach (var item in result)
+            {
+                downloadList.Add(item);
+            }
+            this.listview_Download.ItemsSource = downloadList;
+        }
+
+        private void btn_Download_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void cbox_CheckAll_Checked(object sender, RoutedEventArgs e)
+        {
+            if (cbox_CheckAll.IsChecked.Value == true)            
+                downloadList.ToList().ForEach(x => x.IsCheck = true);                       
+            else
+                downloadList.ToList().ForEach(x => x.IsCheck = false);
+
+            this.listview_Download.ItemsSource = null;
+            this.listview_Download.ItemsSource = downloadList;
+        }
+
+        private void btn_BrowseDownloadFolder_Click(object sender, RoutedEventArgs e)
+        {
+            System.Windows.Forms.FolderBrowserDialog dialog = new System.Windows.Forms.FolderBrowserDialog();
+            if(dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                this.tbox_DownloadFolder.Text = dialog.SelectedPath;
+            }
         }
     }
 }

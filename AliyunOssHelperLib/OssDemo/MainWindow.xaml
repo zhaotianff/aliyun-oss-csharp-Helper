@@ -22,7 +22,7 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
-                    <ListView Grid.Column="0" Name="listview_Upload">
+                    <ListView Grid.Column="0" Name="listview_Upload" SelectionChanged="listview_Upload_SelectionChanged">
                         <ListView.ItemContainerStyle>
                             <Style TargetType="{x:Type ListViewItem}">
                                 <Setter Property="HorizontalContentAlignment" Value="Center"/>
@@ -46,13 +46,71 @@
                 <Canvas Grid.Row="2" Name="canvas_Upload">
                     <Label Content="上传进度"></Label>
                     <ProgressBar Name="progress_Upload" Width="900" Canvas.Left="60" Height="20" Canvas.Top="5"/>
-                    <Button Content="添加文件" Name="btn_AddFile" Canvas.Right="150" Canvas.Top="40" Click="btn_AddFile_Click"/>
-                    <Button Content="添加目录" Name="btn_AddFolder" Canvas.Right="80" Canvas.Top="40" Click="btn_AddFolder_Click"/>
-                    <Button Content="开始上传" Name="btn_Upload" Canvas.Right="10" Canvas.Top="40" Click="btn_Upload_Click"/>
+                    <Button Content="添加文件" Name="btn_AddFile" Canvas.Right="150" Canvas.Top="35" Click="btn_AddFile_Click"/>
+                    <Button Content="添加目录" Name="btn_AddFolder" Canvas.Right="80" Canvas.Top="35" Click="btn_AddFolder_Click"/>
+                    <Button Content="开始上传" Name="btn_Upload" Canvas.Right="10" Canvas.Top="35" Click="btn_Upload_Click"/>
+                    <Label Content="指定文件夹" Canvas.Top="35"/>
+                    <TextBox Width="200" Height="20" Canvas.Left="70" Canvas.Top="38" Name="tbox_Folder" ToolTip="如'Folder1/Folder2'"/>
                 </Canvas>
             </Grid>
         </TabItem>
-        <TabItem Header="下载"></TabItem>
+        <TabItem Header="下载">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="30"/>
+                    <RowDefinition/>
+                    <RowDefinition Height="70"/>
+                </Grid.RowDefinitions>
+
+                <WrapPanel>
+                    <Label Content="选择Bucket"></Label>
+                    <ComboBox Name="combox_DownloadBuckets" Width="200" SelectedIndex="0" SelectionChanged="combox_DownloadBuckets_SelectionChanged"></ComboBox>
+                </WrapPanel>
+
+                <Grid Grid.Row="1">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <ListView Grid.Column="0" Name="listview_Download">
+                        <ListView.ItemContainerStyle>
+                            <Style TargetType="{x:Type ListViewItem}">
+                                <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                            </Style>
+                        </ListView.ItemContainerStyle>
+                        <ListView.View>
+                            <GridView>
+                                <GridViewColumn Width="100">
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <CheckBox IsChecked="{Binding IsCheck}"/>
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
+                                <GridViewColumn Header="文件名"  DisplayMemberBinding="{Binding FileName}" Width="320"/>     
+                                <GridViewColumn Header="大小" DisplayMemberBinding="{Binding FileSize}" Width="70"/>
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+
+                    <GroupBox Grid.Column="1" Width="260" Header="文件预览">
+                        <Image Name="image_DownloadPreview" Stretch="Uniform"></Image>
+                    </GroupBox>
+                </Grid>
+
+                <Canvas Grid.Row="2" Name="canvas_Download" >
+                    <CheckBox Content="全选" Canvas.Left="8" Canvas.Top="5" Name="cbox_CheckAll" Click="cbox_CheckAll_Checked"></CheckBox>         
+                    <Button Content="列出文件" Name="btn_ListFile" Canvas.Right="80" Canvas.Top="35" Click="btn_ListFile_Click"/>
+                    <Button Content="开始下载" Name="btn_Download" Canvas.Right="10" Canvas.Top="35" Click="btn_Download_Click"/>
+                    <Label Content="下载进度"  Canvas.Left="80"></Label>
+                    <ProgressBar Name="progress_Download" Width="900" Canvas.Left="150" Height="20" Canvas.Top="5"/>
+                    <Label Content="保存到" Canvas.Top="35"/>
+                    <TextBox Width="500" Height="20" Canvas.Left="70" Canvas.Top="38" Name="tbox_DownloadFolder"/>
+                    <Button Content="..." Name="btn_BrowseDownloadFolder" Width="30" Canvas.Left="580" Canvas.Top="38" Click="btn_BrowseDownloadFolder_Click"/>
+                </Canvas>
+            </Grid>
+        </TabItem>
         <TabItem Header="管理">
             <Grid>
                 <Grid.RowDefinitions>
