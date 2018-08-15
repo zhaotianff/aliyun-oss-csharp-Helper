@@ -42,4 +42,15 @@
 提供简单的上传，下载和管理功能。
 <br/>
 <h5>软件截图</h5>
-
+<p align="center">
+        <img src="https://github.com/zhaotianff/aliyun-oss-csharp-Helper/blob/master/AliyunOssHelperLib/OssDemo/ScreenShots/1.png" align="center" alt="start up"/>
+        <p align="center">上传</p>
+</p>
+<p align="center">
+        <img src="https://github.com/zhaotianff/aliyun-oss-csharp-Helper/blob/master/AliyunOssHelperLib/OssDemo/ScreenShots/2.png" align="center" alt="start up"/>
+        <p align="center">下载</p>
+</p>
+<p align="center">
+        <img src="https://github.com/zhaotianff/aliyun-oss-csharp-Helper/blob/master/AliyunOssHelperLib/OssDemo/ScreenShots/3.png" align="center" alt="start up"/>
+        <p align="center">配置</p>
+</p>
