@@ -555,23 +555,28 @@ namespace ZtiLib
         /// <summary>
         /// Put File Multi Part
         /// </summary>
-        public void PutFileMultipart(string filePath, string objectKey, int partSize)
+        public bool PutFileMultipart(string filePath, string objectKey, int partCount)
         {
+            bool putResult = true;
             try
-            {
+            {              
                 var initMultiPartResult = InitiateMultipartUpload(filePath, objectKey);
-                var requestId = initMultiPartResult.RequestId;
+                var requestId = initMultiPartResult.UploadId;
 
                 if (initMultiPartResult.HttpStatusCode == System.Net.HttpStatusCode.OK)
                 {
-                    List<PartETag> list = UploadParts(filePath, objectKey, partSize, requestId);
+                    List<PartETag> list = UploadParts(filePath, objectKey, partCount, requestId);
                     var result = CompleteUploadPart(objectKey, requestId, list);
+
+                    if (result.HttpStatusCode != System.Net.HttpStatusCode.OK)
+                        putResult = false;
                 }
             }
             catch (OssException ex)
             {
                 lastError = ex;
             }
+            return putResult;
         }
 
 
@@ -582,11 +587,11 @@ namespace ZtiLib
             return result;
         }
 
-        private List<PartETag> UploadParts(string filePath,string objectKey,int partSize,string uploadId)
+        private List<PartETag> UploadParts(string filePath,string objectKey,int partCount,string uploadId)
         {
             var fi = new FileInfo(filePath);
             var fileSize = fi.Length;
-            var partCount = fileSize / partSize;
+            var partSize = fileSize / partCount;
             if (fileSize % partSize != 0)
             {
                 partCount++;
@@ -637,6 +642,125 @@ namespace ZtiLib
         #endregion
 
         #region Download
+        public void GetObject(string objectKey, string folderPath)
+        {
+            try
+            {
+                string filePath = folderPath + "\\" + objectKey.Substring(objectKey.LastIndexOf("/") + 1);
+                var file = client.GetObject(bucketName, objectKey);
+                using (var requestStream = file.Content)
+                {
+                    byte[] buf = new byte[1024];
+                    var fs = File.Open(filePath, FileMode.OpenOrCreate);
+                    var len = 0;
+                    while ((len = requestStream.Read(buf, 0, 1024)) != 0)
+                    {
+                        fs.Write(buf, 0, len);
+                    }
+                    fs.Close();
+                }
+            }
+            catch (OssException ex)
+            {
+                lastError = ex;
+            }
+        }
+
+        public void GetObjectPartly(string objectKey,string folderPath,int partCount)
+        {
+            string filePath = folderPath + "\\" + objectKey.Substring(objectKey.LastIndexOf("/") + 1);
+            using (var fileStream = new FileStream(filePath, FileMode.OpenOrCreate))
+            {
+                var bufferedStream = new BufferedStream(fileStream);
+                var objectMetadata = client.GetObjectMetadata(bucketName, objectKey);
+                var fileLength = objectMetadata.ContentLength;
+                long partSize = fileLength / partCount;
+
+
+                for (var i = 0; i < partCount; i++)
+                {
+                    var startPos = partSize * i;
+                    var endPos = partSize * i + (partSize < (fileLength - startPos) ? partSize : (fileLength - startPos)) - 1;
+                    Download(bufferedStream, startPos, endPos, filePath, bucketName, objectKey);
+                }
+                bufferedStream.Flush();
+            }
+        }
+
+        private void Download(BufferedStream bufferedStream, long startPos, long endPos, String localFilePath, String bucketName, String fileKey)
+        {
+            Stream contentStream = null;
+            try
+            {
+                var getObjectRequest = new GetObjectRequest(bucketName, fileKey);
+                getObjectRequest.SetRange(startPos, endPos);
+                var ossObject = client.GetObject(getObjectRequest);
+                byte[] buffer = new byte[1024 * 1024];
+                var bytesRead = 0;
+                bufferedStream.Seek(startPos, SeekOrigin.Begin);
+                contentStream = ossObject.Content;
+                while ((bytesRead = contentStream.Read(buffer, 0, buffer.Length)) > 0)
+                {
+                    bufferedStream.Write(buffer, 0, bytesRead);
+                }
+            }
+            finally
+            {
+                if (contentStream != null)
+                {
+                    contentStream.Dispose();
+                }
+            }
+        }
+
+        public ObjectMetadata GetObjectMetadata(string objectKey)
+        {
+            try
+            {
+                var metadata = client.GetObjectMetadata(bucketName, objectKey);
+               
+            }
+            catch (OssException ex)
+            {
+                lastError = ex;
+            }
+            return null;
+        }
+
+        public bool GetObjectProgress(string objectKey,string folderPath, EventHandler<StreamTransferProgressArgs> progressCallback)
+        {        
+            try
+            {
+                string filePath = folderPath + "\\" + objectKey.Substring(objectKey.LastIndexOf("/") + 1);
+                var getObjectRequest = new GetObjectRequest(bucketName, objectKey);
+                getObjectRequest.StreamTransferProgress += progressCallback;
+                var ossObject = client.GetObject(getObjectRequest);
+                using (var stream = ossObject.Content)
+                {
+                    using(FileStream fs = File.Open(filePath, FileMode.OpenOrCreate))
+                    {
+                        var buffer = new byte[1024 * 1024];
+                        var bytesRead = 0;
+                        while ((bytesRead = stream.Read(buffer, 0, buffer.Length)) > 0)
+                        {
+                            fs.Write(buffer, 0, bytesRead);
+                        }
+                    }                  
+                }
+                return true;
+            }
+            catch (OssException ex)
+            {
+                lastError = ex;
+                return false;
+            }
+        }
+
+        private static void streamProgressCallback(object sender, StreamTransferProgressArgs args)
+        {
+            System.Console.WriteLine("ProgressCallback - TotalBytes:{0}, TransferredBytes:{1}",
+                args.TotalBytes, args.TransferredBytes);
+        }
 
         #endregion
 
@@ -645,7 +769,7 @@ namespace ZtiLib
         /// Delete object
         /// </summary>
         /// <param name="key">object name</param>
-        /// <remarks>删除文件夹需要在后面加个"/"</remarks>
+        /// <remarks>if you want to delete folder,append "/" in the end</remarks>
         public bool DeleteObject(string name)
         {
             try
