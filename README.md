@@ -28,6 +28,14 @@
 <h5>上传字符串 返回：true-上传成功 false-上传失败 参数：str-字符串 name-在OSS存储使用的名字(必须唯一，否则会替换)</h5>
 <li>bool PutString(string bucketName,string str,string name)</li>
 <h5>上传字符串 返回：true-上传成功 false-上传失败 参数：bucketName-Bucket名字 str-字符串 name-在OSS存储使用的名字</h5>
+<li>bool PutFile(string filePath)</li>
+<h5>上传文件 返回：true-上传成功 false-上传失败 参数：filePath-要上传的文件路径</h5>
+<li>bool PutFile(string filePath,string objectKey)</li>
+<h5>上传文件 返回：true-上传成功 false-上传失败 参数：filePath-要上传的文件路径 objectKey-在OSS中存储用的标识(唯一，否则被被替换)
+<li>bool PutFile(string bucketName,string filePath,string objectKey)</li>
+<h5>上传文件 返回：true-上传成功 false-上传失败 参数：bucketName-指定Bucket filePath-要上传的文件路径 objectKey-在OSS中存储用的标识
+<li>bool PutFile(string filePath,string objectKey,EventHandler<StreamTransferProgressArgs> progressCallback)</li>
+<h5>上传文件并显示进度 返回：true-上传成功 false-上传失败 参数：filePath-要上传的文件路径 objectKey-在OSS中存储用的标识 progressCallback-上传进度处理函数，可参考下面的代码</h5>
 <br/><br/>
 <h2>使用示例</h2>
 <h5>上传进度事件处理函数</h5>
