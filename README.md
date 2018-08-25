@@ -36,8 +36,6 @@
 <h5>上传文件 返回：true-上传成功 false-上传失败 参数：bucketName-指定Bucket filePath-要上传的文件路径 objectKey-在OSS中存储用的标识</h5>
 <li>bool PutFile(string filePath,string objectKey,EventHandler<StreamTransferProgressArgs> progressCallback)</li>
 <h5>上传文件并显示进度 返回：true-上传成功 false-上传失败 参数：filePath-要上传的文件路径 objectKey-在OSS中存储用的标识 progressCallback-上传进度处理函数，可参考下面的代码</h5>
-<br/><br/>
-<h2>使用示例</h2>
 <h5>上传进度事件处理函数</h5>
 <pre><code>
         private static void streamProgressCallback(object sender, StreamTransferProgressArgs args)
@@ -46,6 +44,7 @@
                 args.TotalBytes, args.TransferredBytes);
         }
 </code></pre>
+<h2>使用示例</h2>
 <h2>示例程序</h2>
 提供简单的上传，下载和管理功能。示例程序只用到一些基本的函数，掌握这些基本函数，我们就已经掌握了OSS的基本使用了。如果后面有时间，会把大部分函数都用到示例程序中去。
 <br/>
