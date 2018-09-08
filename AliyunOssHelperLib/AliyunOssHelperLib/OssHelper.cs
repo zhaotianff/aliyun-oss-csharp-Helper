@@ -19,6 +19,7 @@ namespace ZtiLib
         private string bucketName;
         private OssException lastError;
         private bool isCNameFlag = false;
+        private IEnumerable<OssObjectSummary> globalSummaryList = new List<OssObjectSummary>();
 
         private OssClient client;
         AutoResetEvent resetEvent;
@@ -795,6 +796,33 @@ namespace ZtiLib
             return DeleteObject(name);
         }
 
+        public bool DeleteBucketObjects()
+        {
+            try
+            {
+                var keys = new List<string>();
+                var listResult = client.ListObjects(bucketName);
+                foreach (var summary in listResult.ObjectSummaries)
+                {
+                    keys.Add(summary.Key);
+                }
+                var request = new DeleteObjectsRequest(bucketName, keys, false);
+                client.DeleteObjects(request);
+                return true;
+            }
+            catch (OssException ex)
+            {
+                lastError = ex;
+                return false;
+            }
+        }
+
+        public bool DeleteBucketObjects(string bucketName)
+        {
+            this.bucketName = bucketName;
+            return DeleteBucketObjects();
+        }
+
         /// <summary>
         /// List objcets
         /// </summary>
@@ -820,6 +848,170 @@ namespace ZtiLib
             this.bucketName = bucketName;
             return ListObjects();
         }
+
+        public IEnumerable<OssObjectSummary> ListObjectsWithFilter(string prefix)
+        {
+            IEnumerable<OssObjectSummary> summaryList = new List<OssObjectSummary>();
+            try
+            {
+                var listObjectsRequest = new ListObjectsRequest(bucketName)
+                {
+                    Prefix = prefix
+                };
+                var result = client.ListObjects(listObjectsRequest);
+                summaryList = result.ObjectSummaries;
+            }
+            catch (OssException ex)
+            {
+                lastError = ex;
+            }
+
+            return summaryList;
+        }
+
+        public IEnumerable<OssObjectSummary> ListObjectsWithFilter(string bucketName, string prefix)
+        {
+            this.bucketName = bucketName;
+            return ListObjectsWithFilter(prefix);
+        }
+
+        public IEnumerable<OssObjectSummary> ListObjectsAsync()
+        {
+            try
+            {              
+                resetEvent.Reset();
+                var listObjectsRequest = new ListObjectsRequest(bucketName);
+                client.BeginListObjects(listObjectsRequest, ListObjectCallback, null);
+                resetEvent.WaitOne();               
+            }
+            catch (OssException ex)
+            {
+                lastError = ex;
+            }
+            return globalSummaryList;
+        }
+        private void ListObjectCallback(IAsyncResult ar)
+        {
+            try
+            {
+                var result = client.EndListObjects(ar);
+                globalSummaryList = result.ObjectSummaries;
+                resetEvent.Set();              
+            }
+            catch (OssException ex)
+            {
+                lastError = ex;
+            }
+        }
+
+        public IEnumerable<OssObjectSummary> ListObjectsAsync(string bucketName)
+        {
+            this.bucketName = bucketName;
+            return ListObjectsAsync();
+        }
+
+        public IEnumerable<OssObjectSummary> ListObjectWithSubDir()
+        {
+            List<OssObjectSummary> summaryList = new List<OssObjectSummary>();
+            try
+            {
+                ObjectListing result = null;
+                string nextMarker = string.Empty;
+                do
+                {
+                    var listObjectsRequest = new ListObjectsRequest(bucketName)
+                    {
+                        Marker = nextMarker,
+                        MaxKeys = 100
+                    };
+                    result = client.ListObjects(listObjectsRequest);
+                    summaryList.AddRange(result.ObjectSummaries);
+                    nextMarker = result.NextMarker;
+                } while (result.IsTruncated);
+            }
+            catch (OssException ex)
+            {
+                lastError = ex;
+            }
+            return summaryList;
+        }
+
+        public IEnumerable<OssObjectSummary> ListObjectWithSubDir(string bucketName)
+        {
+            this.bucketName = bucketName;
+            return ListObjectWithSubDir();
+        }
+
+
+        public IEnumerable<OssObjectSummary> ListDirObject(string dir)
+        {
+            return ListObjectsWithFilter(dir + "/");
+        }
+
+        public IEnumerable<OssObjectSummary> ListDirObject(string bucketName, string dir)
+        {
+            this.bucketName = bucketName;
+            return ListDirObject(dir);
+        }
+
+        public IEnumerable<string> ListObjectAndSubDir(string dir)
+        {
+            List<string> summaryList = new List<string>();
+            try
+            {
+                string prefix = "";
+                if (!string.IsNullOrEmpty(dir))
+                    prefix = dir + "/";
+                var listObjectsRequest = new ListObjectsRequest(bucketName)
+                {
+                    Prefix = prefix,
+                    Delimiter = "/"
+                };
+                var result = client.ListObjects(listObjectsRequest);
+                summaryList.AddRange(result.ObjectSummaries.Select(x => x.Key));
+                summaryList.AddRange(result.CommonPrefixes);
+            }
+            catch (OssException ex)
+            {
+                lastError = ex;
+            }
+            return summaryList;
+        }
+
+        public IEnumerable<string> ListObjectAndSubDir(string bucketName,string dir)
+        {
+            this.bucketName = bucketName;
+            return ListObjectAndSubDir(dir);
+        }
+
+        public bool CopyObect(string sourceKey, string targetBucket, string targetKey)
+        {
+            try
+            {
+                var metadata = new ObjectMetadata();
+                metadata.AddHeader(Aliyun.OSS.Util.HttpHeaders.ContentType, "text/html");
+                var req = new CopyObjectRequest(bucketName, sourceKey, targetBucket, targetKey)
+                {
+                    NewObjectMetadata = metadata
+                };
+                var ret = client.CopyObject(req);
+                if (ret.HttpStatusCode == System.Net.HttpStatusCode.OK)
+                    return true;
+                return false;
+            }
+            catch (OssException ex)
+            {
+                lastError = ex;
+                return false;
+            }
+        }
+
+        public bool CopyObject(string bucketName,string sourceKey,string targetBucket,string targetKey)
+        {
+            this.bucketName = bucketName;
+            return CopyObect(sourceKey, targetBucket, targetKey);
+        }
         #endregion
+
     }
 }
